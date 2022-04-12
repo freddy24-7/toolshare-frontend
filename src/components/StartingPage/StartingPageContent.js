@@ -1,11 +1,13 @@
 import classes from './StartingPageContent.module.css';
+import workman from '../../assets/pexels-lisa-fotios-1453499.jpg'
 
 const StartingPageContent = () => {
-    return (
-        <section className={classes.starting}>
-            <h1>Deel je spullen - spar geld!</h1>
-        </section>
-    );
+  return (
+    <section className={classes.starting}>
+      <h1>Spullen lenen - geld sparen</h1>
+        <img src={workman} alt="workman" height={600} width={600}/>
+    </section>
+  );
 };
 
 export default StartingPageContent;
