@@ -7,12 +7,13 @@ function App() {
   return (
     <Layout>
       <Switch>
-        <Route path='/' exact>
-          <HomePage />
-        </Route>
+          <Route path='/' exact>
+              <HomePage />
+          </Route>
       </Switch>
     </Layout>
   );
 }
 
 export default App;
+
