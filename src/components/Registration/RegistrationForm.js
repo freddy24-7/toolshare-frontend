@@ -1,7 +1,3 @@
-//Next: CSS code from previos chapter
-//and character limitations
-//same for username and password
-
 import {SIGN_UP_URL, SIGN_IN_URL} from "../../backend-urls/constants";
 import {useState, useRef, useContext, useEffect} from 'react';
 import { useHistory, useParams } from 'react-router-dom';
@@ -13,67 +9,82 @@ import RegistrationService from "../../services/RegistrationService";
 const RegistrationForm = () => {
 
     const history = useHistory();
-    //Below are added the fields from spring security set-up in backend
+    //Below are added fields from spring security set-up in backend (user class)
     const [name, setName] = useState('')
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
-    //Below constants are for frontend validation purposes
-    const nameInputRef = useRef()
-    const [enteredName, setEnteredName] =
 
-    useEffect(() => {
-        if (inputIsValid) {
-            console.log("Inputs are valid!")
-        }
-    },[inputIsValid]);
+    //Constants used for frontend validation
+    const [enteredNameIsValid, setEnteredNameIsValid] = useState(false)
+    const [enteredUsernameIsValid, setEnteredUsernameIsValid] = useState(false)
+    const [enteredPasswordIsValid, setEnteredPasswordIsValid] = useState(false)
+    const [enteredNameTouched, setEnteredNameTouched] = useState(false)
+    const [enteredUsernameTouched, setEnteredUsernameTouched] = useState(false)
+    const [enteredPasswordTouched, setEnteredPasswordTouched] = useState(false)
 
+    //Creating the variable that will be used to store the JWT token
+    const user = {name, username, password}
+    console.log(user);
 
-    // const nameInputRef = useRef();
-    // const usernameInputRef = useRef();
-    // const passwordInputRef = useRef();
-
-    //This will manage authentication
+    //Variables used for the form submission and authentication
     const authCtx = useContext(JwtContext);
-
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+
+    //Change handlers for submission field below
+    const nameInputChangeHandler = (event) => {
+        setName(event.target.value);
+    }
+    const usernameInputChangeHandler = (event) => {
+        setUsername(event.target.value);
+    }
+    const passwordInputChangeHandler = (event) => {
+        setPassword(event.target.value);
+    }
 
     //This handler toggles between registration and log-in
     const switchAuthModeHandler = () => {
         setIsLogin((prevState) => !prevState);
     };
 
+    //For validation purposes
+    useEffect(()=> {
+        if (enteredNameIsValid) {
+            console.log("enteredNameIsValid is true")
+        }
+    }, [enteredNameIsValid]);
+
+
+    //Forms
     const submitHandler = (event) => {
         event.preventDefault();
 
-        setInputIsTouched(true);
+        //Upon submission
+        setEnteredNameTouched(true)
+        setEnteredUsernameTouched(true)
+        setEnteredPasswordTouched(true)
 
-        //Validation, specifying field lengths that are valid
-        if (name.trim() || username.trim() || password.trim() === '') {
-            setInputIsValid(false);
+        //Validation checks for length of name, username, and password
+        if (name.trim() === '') {
+            setEnteredNameIsValid(false);
             return;
-            // if (((name.value.length > 21 )) || username.value.length > 21) || password.value.length > 21)
-            // {
-            //     setInputIsValid(false);
-            // }
-            // else if (((name.value.length < 4) || username.value.length < 6) || password.value.length < 9)
-            // {
-            //     setInputIsValid(false);
-            // }
-            // return;
         }
+        setEnteredNameIsValid(true)
+        console.log(name);
 
-        setInputIsValid(true);
+        if (username.trim() === '') {
+            setEnteredUsernameIsValid(false);
+            return;
+        }
+        setEnteredUsernameIsValid(true)
+        console.log(username);
 
-        const user = {name, username, password}
-
-        // const enteredName = nameInputRef.current.value;
-        // const enteredUsername = usernameInputRef.current.value;
-        // const enteredPassword = passwordInputRef.current.value;
-
-        // Todo: Add validation
-        const enteredValue = nameInputRef.current.value;
-        console.log(enteredValue)
+        if (password.length < 8 || password.length > 16) {
+            setEnteredPasswordIsValid(false);
+            return;
+        }
+        setEnteredPasswordIsValid(true);
+        console.log(password);
 
 
         setIsLoading(true);
@@ -83,21 +94,31 @@ const RegistrationForm = () => {
         } else {
             url = SIGN_IN_URL
         }
-        RegistrationService.register(user).then((response) => {
+        RegistrationService.register(user, url)
+            .then(response => {
+                console.log(response);
+                history.push('/login');
+            })
+            .catch(error => {
+                console.log(error);
+                setIsLoading(false);
+            });
 
-            console.log(response.data)
-
-            history.push('/')
-            // if (response.data.ok) {
-            //     setIsLoading(false);
-            // } else {
-            //     let errorMessage = 'Authentication failed!';
-            //     throw new Error(errorMessage);
-            //
-            // }
-
-
-        })
+        // RegistrationService.register(user).then((response) => {
+        //
+        //     console.log(response.data)
+        //
+        //     history.push('/login');
+        //     // if (response.data.ok) {
+        //     //     setIsLoading(false);
+        //     // } else {
+        //     //     let errorMessage = 'Authentication failed!';
+        //     //     throw new Error(errorMessage);
+        //     //
+        //     // }
+        //
+        //
+        // })
 
             // UpdateTable()
 
@@ -129,30 +150,31 @@ const RegistrationForm = () => {
         //         alert(err.message);
         //     });
     };
-    const inputIsInValid = !inputIsValid && inputIsTouched;
+    // const inputIsInValid = !inputIsValid && inputIsTouched;
+    //
+    const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
+    const usernameInputIsInvalid = !enteredUsernameIsValid && enteredUsernameTouched;
+    const passwordInputIsInvalid = !enteredPasswordIsValid && enteredPasswordTouched;
 
-    const inputClasses = inputIsValid
+    const InputClasses = nameInputIsInvalid || usernameInputIsInvalid || passwordInputIsInvalid
         ? classes.authinvalid
         : classes.auth;
 
     return (
-        <section className={inputClasses}>
+        <section className={InputClasses}>
             <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
             <form onSubmit={submitHandler}>
                 <div className={classes.control}>
                     <label htmlFor='name'>Full Name</label>
                     <input
-                        ref={nameInputRef}
                         type="text"
                         placeholder= "Enter full name"
                         name= "fullName"
                         className= "form-control"
                         value={name}
-                        onChange={(event) => setName(event.target.value)}
+                        onChange={nameInputChangeHandler}
                     />
-                        {inputIsInValid && (
-                            <p className={classes.errortext}>Entries must be between 4 and 20 characters</p>
-                        )}
+                    {nameInputIsInvalid && <p className={classes.error}>Please enter a valid name</p>}
                 </div>
                 <div className={classes.control}>
                     <label htmlFor='username'>Username</label>
@@ -162,11 +184,9 @@ const RegistrationForm = () => {
                         name= "username"
                         className= "form-control"
                         value={username}
-                        onChange={(event) => setUsername(event.target.value)}
+                        onChange={usernameInputChangeHandler}
                     />
-                        {inputIsInValid && (
-                            <p className={classes.errortext}>Entries must be between 5 and 20 characters</p>)
-                        }
+                    {usernameInputIsInvalid && <p className={classes.error}>Please enter a valid username</p>}
                 </div>
                 <div className={classes.control}>
                     <label htmlFor='password'>Password</label>
@@ -175,17 +195,15 @@ const RegistrationForm = () => {
                         id='password'
                         placeholder= "Enter password"
                         value={password}
-                        onChange={(event) => setPassword(event.target.value)}
+                        onChange={passwordInputChangeHandler}
                     />
-                    {inputIsInValid && (
-                        <p className={classes.errortext}>Entries must be between 8 and 20 characters</p>
-                    )}
+                    {passwordInputIsInvalid && <p className={classes.error}>Password needs 8 to 16 characters</p>}
                 </div>
                 <div className={classes.actions}>
                     {!isLoading && (
                         <button>{isLogin ? 'Login' : 'Create Account'}</button>
                     )}
-                    {isLoading && <p>Success !!! </p>}
+                    {isLoading && <p>Your inpts are ok!</p>}
                     <button
                         type='button'
                         className={classes.toggle}
