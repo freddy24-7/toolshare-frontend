@@ -1,8 +1,7 @@
-import {SIGN_UP_URL, SIGN_IN_URL} from "../../backend-urls/constants";
-import {useState, useRef, useContext, useEffect} from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import {SIGN_UP_URL} from "../../backend-urls/constants";
+import {useState, useEffect} from 'react';
+import { useHistory} from 'react-router-dom';
 
-import JwtContext from "../../jwt-helper/jwt-context";
 import classes from './RegistrationForm.module.css';
 import RegistrationService from "../../services/RegistrationService";
 
@@ -22,12 +21,11 @@ const RegistrationForm = () => {
     const [enteredUsernameTouched, setEnteredUsernameTouched] = useState(false)
     const [enteredPasswordTouched, setEnteredPasswordTouched] = useState(false)
 
-    //Creating the variable that will be used to store the JWT token
+    //Creating the variable that will be used to send data to backend / Spring Security
     const user = {name, username, password}
     console.log(user);
 
-    //Variables used for the form submission and authentication
-    const authCtx = useContext(JwtContext);
+    //Variables used for the form submission
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -86,14 +84,8 @@ const RegistrationForm = () => {
         setEnteredPasswordIsValid(true);
         console.log(password);
 
-
         setIsLoading(true);
-        let url;
-        if (isLogin) {
-            url = SIGN_UP_URL
-        } else {
-            url = SIGN_IN_URL
-        }
+        let url = SIGN_UP_URL;
         RegistrationService.register(user, url)
             .then(response => {
                 console.log(response);
@@ -103,59 +95,14 @@ const RegistrationForm = () => {
                 console.log(error);
                 setIsLoading(false);
             });
-
-        // RegistrationService.register(user).then((response) => {
-        //
-        //     console.log(response.data)
-        //
-        //     history.push('/login');
-        //     // if (response.data.ok) {
-        //     //     setIsLoading(false);
-        //     // } else {
-        //     //     let errorMessage = 'Authentication failed!';
-        //     //     throw new Error(errorMessage);
-        //     //
-        //     // }
-        //
-        //
-        // })
-
-            // UpdateTable()
-
-        // }).catch(error => {
-        //     console.log(error)
-        // }).then((res) => {
-        //         setIsLoading(false);
-        //         // if (res.ok) {
-        //         //     return res.json();
-        //         } else {
-        //             return res.json().then((data) => {
-        //                 let errorMessage = 'Authentication failed!';
-        //                 // if (data && data.error && data.error.message) {
-        //                 //   errorMessage = data.error.message;
-        //                 // }
-        //
-        //                 throw new Error(errorMessage);
-        //             });
-        //         }
-        //     })
-        //     .then((data) => {
-        //         const expirationTime = new Date(
-        //             new Date().getTime() + +data.expiresIn * 1000
-        //         );
-        //         authCtx.login(data.idToken, expirationTime.toISOString());
-        //         history.replace('/');
-        //     })
-        //     .catch((err) => {
-        //         alert(err.message);
-        //     });
     };
-    // const inputIsInValid = !inputIsValid && inputIsTouched;
-    //
+
+    //Validation checks for input validity, post submission
     const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
     const usernameInputIsInvalid = !enteredUsernameIsValid && enteredUsernameTouched;
     const passwordInputIsInvalid = !enteredPasswordIsValid && enteredPasswordTouched;
 
+    //Dynamic use of CSS, other styles appear if input is invalid
     const InputClasses = nameInputIsInvalid || usernameInputIsInvalid || passwordInputIsInvalid
         ? classes.authinvalid
         : classes.auth;
@@ -203,7 +150,7 @@ const RegistrationForm = () => {
                     {!isLoading && (
                         <button>{isLogin ? 'Login' : 'Create Account'}</button>
                     )}
-                    {isLoading && <p>Your inpts are ok!</p>}
+                    {isLoading && <p>Your inputs are ok!</p>}
                     <button
                         type='button'
                         className={classes.toggle}
