@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 let logoutTimer;
 
 const JwtContext = React.createContext({

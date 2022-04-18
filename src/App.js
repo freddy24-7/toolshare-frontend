@@ -14,22 +14,16 @@ function App() {
       return (
         <Layout>
           <Switch>
-              {/*<Route exact path='/' >*/}
-              {/*    <HomePage />*/}
-              {/*</Route>*/}
               <Route exact path="/" component={HomePage} />
               <Route exact path="/login" component={RegisterPage} />
-
-              {/*{!authCtx.isLoggedIn && (*/}
-              {/*<Route path='/login' >*/}
-              {/*    */}
-              {/*    <RegisterPage />*/}
-              {/*</Route>)}*/}
-
-              {/*<Route path='/profile'>*/}
-              {/*    {authCtx.isLoggedIn && <ProfilePage />}*/}
-              {/*    {!authCtx.isLoggedIn && <Redirect to='/login' />}*/}
-              {/*</Route>*/}
+              {!authCtx.isLoggedIn && (
+              <Route path='/login' >
+                  <RegisterPage />
+              </Route>)}
+              <Route path='/profile'>
+                  {authCtx.isLoggedIn && <ProfilePage />}
+                  {!authCtx.isLoggedIn && <Redirect to='/login' />}
+              </Route>
               {/*<Route path='*'>*/}
               {/*    <Redirect to='/' />*/}
               {/*</Route>*/}

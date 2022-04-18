@@ -1,12 +1,13 @@
 import {SIGN_UP_URL, SIGN_IN_URL} from "../../backend-urls/constants";
 import {useState, useRef, useContext, useEffect} from 'react';
 import { useHistory, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 
 import JwtContext from "../../jwt-helper/jwt-context";
 import classes from './RegistrationForm.module.css';
 import RegistrationService from "../../services/RegistrationService";
 
-const RegistrationForm = () => {
+const RegistrationForm = (props) => {
 
     const history = useHistory();
     //Below are added fields from spring security set-up in backend (user class)
@@ -23,8 +24,11 @@ const RegistrationForm = () => {
     const [enteredPasswordTouched, setEnteredPasswordTouched] = useState(false)
 
     //Creating the variable that will be used to store the JWT token
-    const user = {name, username, password}
+    // const user = {name, username, password}
+    const [user, setUser] = useState({name, username, password})
     console.log(user);
+    const dispatch = useDispatch();
+    const currentUser = useSelector(state => state.user);
 
     //Variables used for the form submission and authentication
     const authCtx = useContext(JwtContext);
@@ -48,7 +52,7 @@ const RegistrationForm = () => {
     };
 
     //For validation purposes
-    useEffect(()=> {
+    useEffect(() => {
         if (enteredNameIsValid) {
             console.log("enteredNameIsValid is true")
         }
@@ -58,100 +62,80 @@ const RegistrationForm = () => {
     //Forms
     const submitHandler = (event) => {
         event.preventDefault();
+        setUser((prevState => {
+            return {
+                ...prevState,
+                name: name,
+                username: username,
+                password: password
+            }
+        }))
+    }
 
-        //Upon submission
-        setEnteredNameTouched(true)
-        setEnteredUsernameTouched(true)
-        setEnteredPasswordTouched(true)
 
-        //Validation checks for length of name, username, and password
-        if (name.trim() === '') {
-            setEnteredNameIsValid(false);
-            return;
+    //Upon submission
+    setEnteredNameTouched(true)
+    setEnteredUsernameTouched(true)
+    setEnteredPasswordTouched(true)
+
+    //Validation checks for length of name, username, and password
+    if (name.trim() === '') {
+        setEnteredNameIsValid(false);
+        return;
+    }
+    setEnteredNameIsValid(true)
+    console.log(name);
+
+    if (username.trim() === '') {
+        setEnteredUsernameIsValid(false);
+        return;
+    }
+    setEnteredUsernameIsValid(true)
+    console.log(username);
+
+    if (password.length < 8 || password.length > 16) {
+        setEnteredPasswordIsValid(false);
+        return;
+    }
+    setEnteredPasswordIsValid(true);
+    console.log(password);
+
+
+    setIsLoading(true);
+    let url;
+    if (isLogin) {
+        url = SIGN_UP_URL
+    } else {
+        url = SIGN_IN_URL
+    }
+
+    RegistrationService.register(user, url)
+        .then(response => {
+            console.log(response);
+            history.push('/login');
+            }),
+        else {
+            console.log("Error");
+            setIsLoading(false);
         }
-        setEnteredNameIsValid(true)
-        console.log(name);
-
-        if (username.trim() === '') {
-            setEnteredUsernameIsValid(false);
-            return;
-        }
-        setEnteredUsernameIsValid(true)
-        console.log(username);
-
-        if (password.length < 8 || password.length > 16) {
-            setEnteredPasswordIsValid(false);
-            return;
-        }
-        setEnteredPasswordIsValid(true);
-        console.log(password);
 
 
-        setIsLoading(true);
-        let url;
-        if (isLogin) {
-            url = SIGN_UP_URL
-        } else {
-            url = SIGN_IN_URL
-        }
-        RegistrationService.register(user, url)
-            .then(response => {
-                console.log(response);
-                history.push('/login');
+    },
+
+    )};
+
+RegistrationService.login(user, url)
+        .then(
+            data => {
+                dispatch.setUser(data);
+                props.history.push('/profile');
             })
-            .catch(error => {
-                console.log(error);
-                setIsLoading(false);
-            });
+        .catch(error => {
+            console.log(error);
+            setIsLoading(false);
+            }),
+        setIsLoading(true);
 
-        // RegistrationService.register(user).then((response) => {
-        //
-        //     console.log(response.data)
-        //
-        //     history.push('/login');
-        //     // if (response.data.ok) {
-        //     //     setIsLoading(false);
-        //     // } else {
-        //     //     let errorMessage = 'Authentication failed!';
-        //     //     throw new Error(errorMessage);
-        //     //
-        //     // }
-        //
-        //
-        // })
-
-            // UpdateTable()
-
-        // }).catch(error => {
-        //     console.log(error)
-        // }).then((res) => {
-        //         setIsLoading(false);
-        //         // if (res.ok) {
-        //         //     return res.json();
-        //         } else {
-        //             return res.json().then((data) => {
-        //                 let errorMessage = 'Authentication failed!';
-        //                 // if (data && data.error && data.error.message) {
-        //                 //   errorMessage = data.error.message;
-        //                 // }
-        //
-        //                 throw new Error(errorMessage);
-        //             });
-        //         }
-        //     })
-        //     .then((data) => {
-        //         const expirationTime = new Date(
-        //             new Date().getTime() + +data.expiresIn * 1000
-        //         );
-        //         authCtx.login(data.idToken, expirationTime.toISOString());
-        //         history.replace('/');
-        //     })
-        //     .catch((err) => {
-        //         alert(err.message);
-        //     });
-    };
-    // const inputIsInValid = !inputIsValid && inputIsTouched;
-    //
     const nameInputIsInvalid = !enteredNameIsValid && enteredNameTouched;
     const usernameInputIsInvalid = !enteredUsernameIsValid && enteredUsernameTouched;
     const passwordInputIsInvalid = !enteredPasswordIsValid && enteredPasswordTouched;
@@ -203,7 +187,7 @@ const RegistrationForm = () => {
                     {!isLoading && (
                         <button>{isLogin ? 'Login' : 'Create Account'}</button>
                     )}
-                    {isLoading && <p>Your inpts are ok!</p>}
+                    {isLoading && <p>Your inputs are ok!</p>}
                     <button
                         type='button'
                         className={classes.toggle}
