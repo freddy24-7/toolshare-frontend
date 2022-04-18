@@ -1,9 +1,10 @@
-import {SIGN_UP_URL} from "../../backend-urls/constants";
+import {SIGN_IN_URL, SIGN_UP_URL} from "../../backend-urls/constants";
 import {useState, useEffect} from 'react';
 import { useHistory} from 'react-router-dom';
 
 import classes from './RegistrationForm.module.css';
 import RegistrationService from "../../services/RegistrationService";
+import axios from "axios";
 
 const RegistrationForm = () => {
 
@@ -85,8 +86,8 @@ const RegistrationForm = () => {
         console.log(password);
 
         setIsLoading(true);
-        let url = SIGN_UP_URL;
-        RegistrationService.register(user, url)
+        let url1 = SIGN_UP_URL;
+        RegistrationService.register(user, url1)
             .then(response => {
                 console.log(response);
                 history.push('/login');
@@ -95,6 +96,28 @@ const RegistrationForm = () => {
                 console.log(error);
                 setIsLoading(false);
             });
+
+        // const data = {
+        //     name: name,
+        //     username: username,
+        //     password: password
+        // }
+        // let url2 = SIGN_IN_URL;
+        // RegistrationService.register(data, url2)
+        //     .then(response => {
+        //         localStorage.setItem('token', response.token);
+        //     })
+        //     .catch(error => {
+        //         console.log(error);
+        //     });
+        // axios.post(SIGN_IN_URL, data)
+        //     .then(response => {
+        //         localStorage.setItem('token', response.data.token)
+        //     })
+        //     .catch(error => {
+        //         console.log(error);
+        //     });
+
     };
 
     //Validation checks for input validity, post submission
@@ -106,6 +129,8 @@ const RegistrationForm = () => {
     const InputClasses = nameInputIsInvalid || usernameInputIsInvalid || passwordInputIsInvalid
         ? classes.authinvalid
         : classes.auth;
+
+
 
     return (
         <section className={InputClasses}>
