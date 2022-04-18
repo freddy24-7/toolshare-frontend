@@ -1,9 +1,10 @@
-import {SIGN_UP_URL} from "../../backend-urls/constants";
+import {SIGN_IN_URL, SIGN_UP_URL} from "../../backend-urls/constants";
 import {useState, useEffect} from 'react';
 import { useHistory} from 'react-router-dom';
 
 import classes from './RegistrationForm.module.css';
 import RegistrationService from "../../services/RegistrationService";
+import axios from "axios";
 
 const RegistrationForm = () => {
 
@@ -95,6 +96,7 @@ const RegistrationForm = () => {
                 console.log(error);
                 setIsLoading(false);
             });
+
     };
 
     //Validation checks for input validity, post submission
