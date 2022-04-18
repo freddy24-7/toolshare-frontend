@@ -1,6 +1,7 @@
-import {SIGN_UP_URL} from "../../backend-urls/constants";
-import {useState, useEffect} from 'react';
-import { useHistory} from 'react-router-dom';
+import {SIGN_UP_URL, SIGN_IN_URL} from "../../backend-urls/constants";
+import {useState, useEffect, useContext} from 'react';
+import { useHistory, Link } from 'react-router-dom';
+import AuthContextProvider, {AuthContext} from "../../context/AuthContext";
 
 import classes from './RegistrationForm.module.css';
 import RegistrationService from "../../services/RegistrationService";
@@ -12,6 +13,8 @@ const RegistrationForm = () => {
     const [name, setName] = useState('')
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [error, toggleError] = useState(false);
+    const { login } = useContext(AuthContext);
 
     //Constants used for frontend validation
     const [enteredNameIsValid, setEnteredNameIsValid] = useState(false)
@@ -54,8 +57,9 @@ const RegistrationForm = () => {
 
 
     //Forms
-    const submitHandler = (event) => {
+    const submitHandler = async (event) => {
         event.preventDefault();
+        toggleError(false);
 
         //Upon submission
         setEnteredNameTouched(true)
@@ -95,6 +99,24 @@ const RegistrationForm = () => {
                 console.log(error);
                 setIsLoading(false);
             });
+
+        try {
+            let url = SIGN_IN_URL;
+            const result = RegistrationService.login(user, url)
+                .then(response => {
+                console.log(response);
+                history.push('/login');
+            });
+            // log het resultaat in de console
+            console.log(result.data);
+
+            // geef de JWT token aan de login-functie van de context mee
+            login(result.data.token);
+
+        } catch (e) {
+            console.error(e);
+            toggleError(true);
+        }
     };
 
     //Validation checks for input validity, post submission
@@ -106,6 +128,8 @@ const RegistrationForm = () => {
     const InputClasses = nameInputIsInvalid || usernameInputIsInvalid || passwordInputIsInvalid
         ? classes.authinvalid
         : classes.auth;
+
+
 
     return (
         <section className={InputClasses}>
@@ -150,7 +174,7 @@ const RegistrationForm = () => {
                     {!isLoading && (
                         <button>{isLogin ? 'Login' : 'Create Account'}</button>
                     )}
-                    {isLoading && <p>Your inputs are ok!</p>}
+                    {/*{isLoading && <p>Your inputs are ok!</p>}*/}
                     <button
                         type='button'
                         className={classes.toggle}
