@@ -26,7 +26,6 @@ const RegistrationForm = () => {
     console.log(user);
 
     //Variables used for the form submission
-    const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
     //Change handlers for submission field below
@@ -40,10 +39,6 @@ const RegistrationForm = () => {
         setPassword(event.target.value);
     }
 
-    //This handler toggles between registration and log-in
-    const switchAuthModeHandler = () => {
-        setIsLogin((prevState) => !prevState);
-    };
 
     //For validation purposes
     useEffect(()=> {
@@ -89,7 +84,7 @@ const RegistrationForm = () => {
         RegistrationService.register(user, url)
             .then(response => {
                 console.log(response);
-                history.push('/login');
+                history.push('/register');
             })
             .catch(error => {
                 console.log(error);
@@ -109,7 +104,7 @@ const RegistrationForm = () => {
 
     return (
         <section className={InputClasses}>
-            <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
+            <h1>Sign Up</h1>
             <form onSubmit={submitHandler}>
                 <div className={classes.control}>
                     <label htmlFor='name'>Full Name</label>
@@ -148,16 +143,9 @@ const RegistrationForm = () => {
                 </div>
                 <div className={classes.actions}>
                     {!isLoading && (
-                        <button>{isLogin ? 'Login' : 'Create Account'}</button>
+                        <button>Create Account</button>
                     )}
                     {isLoading && <p>Your inputs are ok!</p>}
-                    <button
-                        type='button'
-                        className={classes.toggle}
-                        onClick={switchAuthModeHandler}
-                    >
-                        {isLogin ? 'Create new account' : 'Login with existing account'}
-                    </button>
                 </div>
             </form>
         </section>
