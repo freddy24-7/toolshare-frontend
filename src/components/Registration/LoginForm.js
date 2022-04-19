@@ -1,69 +1,108 @@
-import {SIGN_IN_URL} from "../../backend-urls/constants";
-import {useState} from 'react';
-import { useHistory} from 'react-router-dom';
-
-import classes from './RegistrationForm.module.css';
-import RegistrationService from "../../services/RegistrationService";
+import { useRef, useState, useEffect, useContext } from 'react';
+import AuthContext from "../../context/AuthContext";
 import axios from "axios";
+import {SIGN_IN_URL} from "../../backend-urls/constants";
+import classes from './RegistrationForm.module.css';
 
-const LoginForm = () => {
+const LOGIN_URL = SIGN_IN_URL
 
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
+const Login = () => {
+    let { setAuth } = useContext(AuthContext);
+    const userRef = useRef();
+    const errRef = useRef();
 
-    const usernameInputChangeHandler = (event) => {
-        setUsername(event.target.value);
-    }
-    const passwordInputChangeHandler = (event) => {
-        setPassword(event.target.value);
-    }
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [errMsg, setErrMsg] = useState('');
+    const [success, setSuccess] = useState(false);
 
-    const data = {username, password}
+    useEffect(() => {
+        userRef.current.focus();
+    }, [])
 
-    const submitHandler = (event) => {
-        event.preventDefault();
+    useEffect(() => {
+        setErrMsg('');
+    }, [username, password])
 
-        axios.post(SIGN_IN_URL, data)
-            .then(response => {
-                localStorage.setItem('token', response.data.token);
-            })
-            .catch(error => {
-                console.log(error);
-            });
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await axios.post(LOGIN_URL,
+                JSON.stringify({ username, password }),
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            );
+            console.log(JSON.stringify(response?.data));
+            //console.log(JSON.stringify(response));
+            const accessToken = response?.data?.accessToken;
+            const roles = response?.data?.roles;
+            setAuth = ({ username, password, roles, accessToken });
+            setUsername('');
+            setPassword('');
+            setSuccess(true);
+        } catch (err) {
+            if (!err?.response) {
+                setErrMsg('No Server Response');
+            } else if (err.response?.status === 400) {
+                setErrMsg('Missing Username or Password');
+            } else if (err.response?.status === 401) {
+                setErrMsg('Unauthorized');
+            } else {
+                setErrMsg('Login Failed');
+            }
+            errRef.current.focus();
+        }
     }
 
     return (
-        <section className={classes.auth}>
-            <h1>Log In</h1>
-            <form onSubmit={submitHandler}>
+        <>
+            {success ? (
+                <section className={classes.auth}>
+                    <h1>You are logged in!</h1>
+                    <br />
+                    <p>
+                        <a href="#">Go to Home</a>
+                    </p>
+                </section>
+            ) : (
+                <section>
+                    <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
+                    <h1>Sign In</h1>
+                    <form onSubmit={handleSubmit}>
+                        <label htmlFor="username">Username:</label>
+                        <input
+                            type="text"
+                            id="username"
+                            ref={userRef}
+                            autoComplete="off"
+                            onChange={(e) => setUsername(e.target.value)}
+                            value={username}
+                            required
+                        />
 
-                <div className={classes.control}>
-                    <label htmlFor='username'>Username</label>
-                    <input
-                        type="text"
-                        placeholder= "Enter username"
-                        name= "username"
-                        className= "form-control"
-                        value={data.username}
-                        onChange={usernameInputChangeHandler}
-                    />
-                </div>
-                <div className={classes.control}>
-                    <label htmlFor='password'>Password</label>
-                    <input
-                        type='password'
-                        id='password'
-                        placeholder= "Enter password"
-                        value={data.password}
-                        onChange={passwordInputChangeHandler}
-                    />
-                </div>
-                <div className={classes.actions}>
-                        <button>Log In</button>
-                </div>
-            </form>
-        </section>
-    );
-};
+                        <label htmlFor="password">Password:</label>
+                        <input
+                            type="password"
+                            id="password"
+                            onChange={(e) => setPassword(e.target.value)}
+                            value={password}
+                            required
+                        />
+                        <button>Sign In</button>
+                    </form>
+                    <p>
+                        Need an Account?<br />
+                        <span className="line">
+                            {/*put router link here*/}
+                            <a href="#">Sign Up</a>
+                        </span>
+                    </p>
+                </section>
+            )}
+        </>
+    )
+}
 
-export default LoginForm;
+export default Login

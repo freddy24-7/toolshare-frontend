@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import classes from './MainNavigation.module.css';
 
 const MainNavigation = () => {
+
+    // const logoutHandler = () => {
+    //     localStorage.removeItem('token');
+    // }
+
   return (
     <header className={classes.header}>
       <Link to='/'>
